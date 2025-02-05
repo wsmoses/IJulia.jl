@@ -44,7 +44,7 @@ end
 
 comm_target(comm :: Comm{target}) where {target} = target
 
-function comm_info_request(sock, msg)
+function comm_info_request(sock, kernel, msg)
     reply = if haskey(msg.content, "target_name")
         t = Symbol(msg.content["target_name"])
         filter(kv -> comm_target(kv.second) == t, comms)
@@ -59,7 +59,7 @@ function comm_info_request(sock, msg)
     end
     content = Dict(:comms => _comms)
 
-    send_ipython(sock,
+    send_ipython(sock, kernel,
                  msg_reply(msg, "comm_info_reply", content))
 end
 
@@ -75,18 +75,18 @@ function msg_comm(comm::Comm, m::IJulia.Msg, msg_type,
     return msg_pub(m, msg_type, content, metadata)
 end
 
-function send_comm(comm::Comm, data::Dict,
+function send_comm(comm::Comm, kernel, data::Dict,
                    metadata::Dict = Dict(); kwargs...)
     msg = msg_comm(comm, IJulia.execute_msg, "comm_msg", data,
                    metadata; kwargs...)
-    send_ipython(IJulia.publish[], msg)
+    send_ipython(kernel.publish[], kernel, msg)
 end
 
-function close_comm(comm::Comm, data::Dict = Dict(),
+function close_comm(comm::Comm, kernel, data::Dict = Dict(),
                     metadata::Dict = Dict(); kwargs...)
     msg = msg_comm(comm, IJulia.execute_msg, "comm_close", data,
                    metadata; kwargs...)
-    send_ipython(IJulia.publish[], msg)
+    send_ipython(kernel.publish[], kernel, msg)
 end
 
 function register_comm(comm::Comm, data)
@@ -97,7 +97,7 @@ end
 
 # handlers for incoming comm_* messages
 
-function comm_open(sock, msg)
+function comm_open(sock, msg, kernel)
     if haskey(msg.content, "comm_id")
         comm_id = msg.content["comm_id"]
         if haskey(msg.content, "target_name")
@@ -111,7 +111,7 @@ function comm_open(sock, msg)
         else
             # Tear down comm to maintain consistency
             # if a target_name is not present
-            send_ipython(IJulia.publish[],
+            send_ipython(kernel.publish[], kernel,
                          msg_comm(Comm(:notarget, comm_id),
                                   msg, "comm_close"))
         end

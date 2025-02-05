@@ -21,7 +21,7 @@ end
 ENV["LINES"] = get(ENV, "LINES", 30)
 ENV["COLUMNS"] = get(ENV, "COLUMNS", 80)
 
-IJulia.init(ARGS)
+IJulia.init(ARGS, IJulia._default_kernel)
 
 let startupfile = !isempty(DEPOT_PATH) ? abspath(DEPOT_PATH[1], "config", "startup_ijulia.jl") : ""
     isfile(startupfile) && Base.JLOptions().startupfile != 2 && Base.include(Main, startupfile)
@@ -35,7 +35,7 @@ pushdisplay(IJulia.InlineDisplay())
 ccall(:jl_exit_on_sigint, Cvoid, (Cint,), 0)
 
 println(IJulia.orig_stdout[], "Starting kernel event loops.")
-IJulia.watch_stdio()
+IJulia.watch_stdio(IJulia._default_kernel)
 
 # workaround JuliaLang/julia#4259
 delete!(task_local_storage(),:SOURCE_PATH)
@@ -50,4 +50,4 @@ if isdefined(Main, :Revise)
     end
 end
 
-IJulia.waitloop()
+IJulia.waitloop(IJulia._default_kernel)
