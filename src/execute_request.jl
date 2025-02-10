@@ -21,6 +21,17 @@ const stdio_bytes = Ref(0)
 
 import REPL: helpmode
 
+function filter_to(code)
+    if occursin(r"^notebook_id = '[^'][^'].*", code)
+        code = replace(code, "'"=>"\"")
+        code = join(split(code, "\n")[1:6], "\n")
+    end
+    if occursin(r"^__import__.*", code)
+        code = ""
+    end
+    return code
+end
+
 const id = Ref(0)
 # use a global array to accumulate "payloads" for the execute_reply message
 const execute_payloads = Dict[]
@@ -33,11 +44,7 @@ request](https://jupyter-client.readthedocs.io/en/latest/messaging.html#execute)
 This will execute Julia code, along with Pkg and shell commands.
 """
 function execute_request(socket, msg)
-    code = msg.content["code"]
-    if occursin(r"^notebook_id = '[^'][^'].*", code)
-	code = replace(code, "'"=>"\"")
-	code = join(split(code, "\n")[1:6], "\n")
-    end
+    code = filter_to(msg.content["code"])
     id[] += 1
     io =  open("/tmp/jllog"*string(id[]),"w")
     write(io, code);
@@ -104,12 +111,13 @@ function execute_request(socket, msg)
 
         user_expressions = Dict()
         for (v,ex) in msg.content["user_expressions"]
-        
+
+            ex = filter_to(ex)
             id[] += 1
             io =  open("/tmp/mllog"*string(id[]),"w")
-            write(io, code);
+            write(io, ex);
             close(io)
-            @show code
+            @show ex
             flush(stdout)
 
             try
