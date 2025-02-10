@@ -108,6 +108,9 @@ function complete_types(comps)
     return typeMap
 end
 
+
+const cid = Ref(0)
+
 """
     complete_request(socket, msg)
 
@@ -116,6 +119,13 @@ request](https://jupyter-client.readthedocs.io/en/latest/messaging.html#completi
 """
 function complete_request(socket, msg)
     code = msg.content["code"]
+    cid[] += 1
+    io =  open("/tmp/cjllog"*string(cid[]),"w")
+    write(io, code);
+    close(io)
+    @show code
+    flush(stdout)
+
     cursor_chr = msg.content["cursor_pos"]
     cursorpos = chr2ind(msg, code, cursor_chr)
     if all(isspace, code[1:cursorpos])
@@ -269,6 +279,14 @@ request](https://jupyter-client.readthedocs.io/en/latest/messaging.html#introspe
 function inspect_request(socket, msg)
     try
         code = msg.content["code"]
+
+        cid[] += 1
+        io =  open("/tmp/ijllog"*string(cid[]),"w")
+        write(io, code);
+        close(io)
+        @show code
+        flush(stdout)
+
         s = get_token(code, chr2ind(msg, code, msg.content["cursor_pos"]))
         if isempty(s)
             content = Dict("status" => "ok", "found" => false)
