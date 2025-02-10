@@ -21,6 +21,7 @@ const stdio_bytes = Ref(0)
 
 import REPL: helpmode
 
+const id = Ref(0)
 # use a global array to accumulate "payloads" for the execute_reply message
 const execute_payloads = Dict[]
 
@@ -37,6 +38,11 @@ function execute_request(socket, msg)
 	code = replace(code, "'"=>"\"")
 	code = join(split(code, "\n")[1:6], "\n")
     end
+    id[] += 1
+    exampleFileIOStream =  open("/tmp/jllog"*string(id[]),"w")
+    write(exampleFileIOStream, code);
+    close(io)
+    @show code
     @vprintln("EXECUTING ", code)
     global execute_msg = msg
     global n, In, Out, ans
