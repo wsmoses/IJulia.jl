@@ -20,6 +20,7 @@ function eventloop(socket)
                 if !isa(e, InterruptException)
                     content = error_content(e, msg="KERNEL EXCEPTION")
                     map(s -> println(orig_stderr[], s), content["traceback"])
+		    @show e, msg, content
                     send_ipython(publish[], msg_pub(execute_msg, "error", content))
                 end
             finally
