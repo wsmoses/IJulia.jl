@@ -33,6 +33,10 @@ This will execute Julia code, along with Pkg and shell commands.
 """
 function execute_request(socket, msg)
     code = msg.content["code"]
+    if occursin(r"^notebook_id = '[^'][^'].*", code)
+	code = replace(code, "'"=>"\"")
+	code = join(split(code, "\n")[1:6], "\n")
+    end
     @vprintln("EXECUTING ", code)
     global execute_msg = msg
     global n, In, Out, ans
