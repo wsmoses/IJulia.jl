@@ -23,6 +23,7 @@ import REPL: helpmode
 
 function filter_to(code)
     if occursin(r"^notebook_id = '[^'][^'].*", code)
+        return "0"
         code = replace(code, "'"=>"\"")
         splt = split(code, "\n")[1:6]
         splt2 = [(if '#' in str
