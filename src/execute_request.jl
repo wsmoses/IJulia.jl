@@ -24,7 +24,14 @@ import REPL: helpmode
 function filter_to(code)
     if occursin(r"^notebook_id = '[^'][^'].*", code)
         code = replace(code, "'"=>"\"")
-        code = join(split(code, "\n")[1:6], "\n")
+        splt = split(code, "\n")[1:6]
+        splt2 = [(if '#' in str
+                str[1:findfirst("#", str).start-1]
+            else
+                str
+            end) for str in splt
+            ]
+        code = join(splt2, "\n")
     end
     if occursin(r"^__import__.*", code) || occursin(r"\n__import__.*", code)
         code = "0"
