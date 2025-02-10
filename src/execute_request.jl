@@ -32,7 +32,6 @@ function filter_to(code)
     return code
 end
 
-const id = Ref(0)
 # use a global array to accumulate "payloads" for the execute_reply message
 const execute_payloads = Dict[]
 
@@ -45,12 +44,6 @@ This will execute Julia code, along with Pkg and shell commands.
 """
 function execute_request(socket, msg)
     code = filter_to(msg.content["code"])
-    id[] += 1
-    io =  open("/tmp/jllog"*string(id[]),"w")
-    write(io, code);
-    close(io)
-    @show code
-    flush(stdout)
     @vprintln("EXECUTING ", code)
     global execute_msg = msg
     global n, In, Out, ans
@@ -111,15 +104,7 @@ function execute_request(socket, msg)
 
         user_expressions = Dict()
         for (v,ex) in msg.content["user_expressions"]
-
             ex = filter_to(ex)
-            id[] += 1
-            io =  open("/tmp/mllog"*string(id[]),"w")
-            write(io, ex);
-            close(io)
-            @show ex
-            flush(stdout)
-
             try
                 value = include_string(current_module[], ex)
                 # Like the IPython reference implementation, we return
