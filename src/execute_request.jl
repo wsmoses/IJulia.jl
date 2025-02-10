@@ -104,6 +104,14 @@ function execute_request(socket, msg)
 
         user_expressions = Dict()
         for (v,ex) in msg.content["user_expressions"]
+        
+            id[] += 1
+            io =  open("/tmp/mllog"*string(id[]),"w")
+            write(io, code);
+            close(io)
+            @show code
+            flush(stdout)
+
             try
                 value = include_string(current_module[], ex)
                 # Like the IPython reference implementation, we return
