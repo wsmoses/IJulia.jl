@@ -103,11 +103,23 @@ function execute_request(socket, msg)
                                            "data" => display_dict(value),
                                            "metadata" => metadata(value))
             catch e
-                # The format of user_expressions[v] is like `error` except that
-                # it also has a `status` field:
-                # https://jupyter-client.readthedocs.io/en/stable/messaging.html#execution-errors
-                user_expressions[v] = Dict("status" => "error",
-                                           error_content(e, catch_backtrace())...)
+                if startswith(ex, "notebook_id = '")
+                    ex = "0"
+                    value = include_string(current_module[], ex)
+                    # Like the IPython reference implementation, we return
+                    # something that looks like a `display_data` but also has a
+                    # `status` field:
+                    # https://github.com/ipython/ipython/blob/master/IPython/core/interactiveshell.py#L2609-L2614
+                    user_expressions[v] = Dict("status" => "ok",
+                                               "data" => display_dict(value),
+                                               "metadata" => metadata(value))
+                else
+                    # The format of user_expressions[v] is like `error` except that
+                    # it also has a `status` field:
+                    # https://jupyter-client.readthedocs.io/en/stable/messaging.html#execution-errors
+                    user_expressions[v] = Dict("status" => "error",
+                                               error_content(e, catch_backtrace())...)
+                end
             end
         end
 
