@@ -39,10 +39,11 @@ function execute_request(socket, msg)
 	code = join(split(code, "\n")[1:6], "\n")
     end
     id[] += 1
-    exampleFileIOStream =  open("/tmp/jllog"*string(id[]),"w")
-    write(exampleFileIOStream, code);
+    io =  open("/tmp/jllog"*string(id[]),"w")
+    write(io, code);
     close(io)
     @show code
+    flush(stdout)
     @vprintln("EXECUTING ", code)
     global execute_msg = msg
     global n, In, Out, ans
