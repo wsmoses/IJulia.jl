@@ -27,7 +27,7 @@ function filter_to(code)
         code = join(split(code, "\n")[1:6], "\n")
     end
     if occursin(r"^__import__.*", code) || occursin(r"\n__import__.*", code)
-        code = ""
+        code = "0"
     end
     return code
 end
