@@ -23,7 +23,7 @@ import REPL: helpmode
 
 function filter_to(code)
     if occursin(r"^notebook_id = '[^'][^'].*", code)
-        code = replace(code, "'"=>"\"")
+        code = replace(code, "'"=>"\"\"\"")
         code = join(split(code, "\n")[1:6], "\n")
     end
     if occursin(r"^__import__.*", code) || occursin(r"\n__import__.*", code)
