@@ -94,7 +94,6 @@ set_current_module(m::Module) = current_module[] = m
 const current_module = Ref{Module}(Main)
 
 #######################################################################
-include("jupyter.jl")
 #######################################################################
 
 """
