@@ -41,11 +41,11 @@ function filter_to2(code)
         return "-1"
     elseif occursin(r"^# key: enable_dataframe_metadata", code)
         return "0"
-    elseif occursin(r"^# key: enable_function_repr")
+    elseif occursin(r"^# key: enable_function_repr", code)
         return "0"
-    elseif occursin(r"^# key: enable_numpy_repr")
+    elseif occursin(r"^# key: enable_numpy_repr", code)
         return "0"
-    elseif occursin(r"^# key: snippets")
+    elseif occursin(r"^# key: snippets", code)
         return "[]"
     else
         return code
