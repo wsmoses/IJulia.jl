@@ -36,19 +36,19 @@ end
 
 function filter_to2(code)
     if occursin(r"^# key: info_links", code)
-        return "Dict()"
+        return true, Dict("status" => "ok", "data" => "{}", "metadata" => metadata(Dict()))
     elseif occursin(r"^# key: kernel_version", code)
-        return "-1"
+        return true, Dict("status" => "ok", "data" => "-1", "metadata" => metadata(-1))
     elseif occursin(r"^# key: enable_dataframe_metadata", code)
-        return "0"
+        return true, Dict("status" => "ok", "data" => "0", "metadata" => metadata(0))
     elseif occursin(r"^# key: enable_function_repr", code)
-        return "0"
+        return true, Dict("status" => "ok", "data" => "0", "metadata" => metadata(0))
     elseif occursin(r"^# key: enable_numpy_repr", code)
-        return "0"
+        return true, Dict("status" => "ok", "data" => "0", "metadata" => metadata(0))
     elseif occursin(r"^# key: snippets", code)
-        return "[]"
+        return true, Dict("status" => "ok", "data" => "[]", "metadata" => metadata([]))
     else
-        return code
+        return false, code
     end
 end
 
@@ -125,22 +125,26 @@ function execute_request(socket, msg)
 
         user_expressions = Dict()
         for (v,ex) in msg.content["user_expressions"]
-            ex = filter_to2(ex)
-            try
-                value = include_string(current_module[], ex)
-                # Like the IPython reference implementation, we return
-                # something that looks like a `display_data` but also has a
-                # `status` field:
-                # https://github.com/ipython/ipython/blob/master/IPython/core/interactiveshell.py#L2609-L2614
-                user_expressions[v] = Dict("status" => "ok",
-                                           "data" => display_dict(value),
-                                           "metadata" => metadata(value))
-            catch e
-                # The format of user_expressions[v] is like `error` except that
-                # it also has a `status` field:
-                # https://jupyter-client.readthedocs.io/en/stable/messaging.html#execution-errors
-                user_expressions[v] = Dict("status" => "error",
-                                           error_content(e, catch_backtrace())...)
+            forced, ex = filter_to2(ex)
+            if forced
+                user_expressions[v] = ex
+            else
+                try
+                    value = include_string(current_module[], ex)
+                    # Like the IPython reference implementation, we return
+                    # something that looks like a `display_data` but also has a
+                    # `status` field:
+                    # https://github.com/ipython/ipython/blob/master/IPython/core/interactiveshell.py#L2609-L2614
+                    user_expressions[v] = Dict("status" => "ok",
+                                               "data" => display_dict(value),
+                                               "metadata" => metadata(value))
+                catch e
+                    # The format of user_expressions[v] is like `error` except that
+                    # it also has a `status` field:
+                    # https://jupyter-client.readthedocs.io/en/stable/messaging.html#execution-errors
+                    user_expressions[v] = Dict("status" => "error",
+                                               error_content(e, catch_backtrace())...)
+                end
             end
         end
 
