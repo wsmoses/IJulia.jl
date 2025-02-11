@@ -15,6 +15,12 @@ prefsfile = joinpath(first(DEPOT_PATH), "prefs", "IJulia")
 mkpath(dirname(prefsfile))
 jupyter = ""
 
+function write_if_changed(filename, contents)
+    if !isfile(filename) || read(filename, String) != contents
+        write(filename, contents)
+    end
+end
+
 # Install the deps.jl file:
 deps = """
     const IJULIA_DEBUG = $(IJULIA_DEBUG)
