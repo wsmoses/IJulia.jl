@@ -34,6 +34,24 @@ function filter_to(code)
     return (start, code)
 end
 
+function filter_to2(code)
+    if occursin(r"^# key: info_links", code)
+        return "Dict()"
+    elseif occursin(r"^# key: kernel_version", code)
+        return "-1"
+    elseif occursin(r"^# key: enable_dataframe_metadata", code)
+        return "0"
+    elseif occursin(r^"# key: enable_function_repr")
+        return "0"
+    elseif occursin(r^"# key: enable_numpy_repr")
+        return "0"
+    elseif occursin(r^"# key: snippets")
+        return "[]"
+    else
+        return code
+    end
+end
+
 const id = Ref(0)
 # use a global array to accumulate "payloads" for the execute_reply message
 const execute_payloads = Dict[]
@@ -107,7 +125,7 @@ function execute_request(socket, msg)
 
         user_expressions = Dict()
         for (v,ex) in msg.content["user_expressions"]
-            # _, ex = filter_to(ex)
+            ex = filter_to2(ex)
             try
                 value = include_string(current_module[], ex)
                 # Like the IPython reference implementation, we return
