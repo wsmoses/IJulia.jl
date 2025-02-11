@@ -22,14 +22,16 @@ const stdio_bytes = Ref(0)
 import REPL: helpmode
 
 function filter_to(code)
+    start = false
     if occursin(r"^notebook_id = '[^'][^'].*", code)
         code = replace(code, "'"=>"\"\"\"")
         code = join(split(code, "\n")[1:6], "\n")
+        start = true
     end
     if occursin(r"^__import__.*", code) || occursin(r"\n__import__.*", code)
         code = "0"
     end
-    return code
+    return (start, code)
 end
 
 const id = Ref(0)
@@ -44,13 +46,7 @@ request](https://jupyter-client.readthedocs.io/en/latest/messaging.html#execute)
 This will execute Julia code, along with Pkg and shell commands.
 """
 function execute_request(socket, msg)
-    code = filter_to(msg.content["code"])
-    id[] += 1
-    io =  open("/tmp/jllog"*string(id[]),"w")
-    write(io, code);
-    close(io)
-    @show code
-    flush(stdout)
+    (start, code) = filter_to(msg.content["code"])
     @vprintln("EXECUTING ", code)
     global execute_msg = msg
     global n, In, Out, ans
@@ -111,15 +107,7 @@ function execute_request(socket, msg)
 
         user_expressions = Dict()
         for (v,ex) in msg.content["user_expressions"]
-
-            ex = filter_to(ex)
-            id[] += 1
-            io =  open("/tmp/mllog"*string(id[]),"w")
-            write(io, ex);
-            close(io)
-            @show ex
-            flush(stdout)
-
+            # _, ex = filter_to(ex)
             try
                 value = include_string(current_module[], ex)
                 # Like the IPython reference implementation, we return
@@ -158,6 +146,7 @@ function execute_request(socket, msg)
                                               "data" => result_data)))
 
         end
+
         send_ipython(requests[],
                      msg_reply(msg, "execute_reply",
                                Dict("status" => "ok",
